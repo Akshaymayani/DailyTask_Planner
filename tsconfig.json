@@ -1,3 +1,20 @@
+// {
+//   "extends": "@react-native/typescript-config/tsconfig.json"
+// }
+
+
 {
-  "extends": "@react-native/typescript-config/tsconfig.json"
+  "compilerOptions": {
+    "target": "esnext",                // Set to ESNext or ES6+ for better JS support
+    "module": "esnext",                // Recommended for modern React Native development
+    "moduleResolution": "node",        // Resolve modules like Node.js
+    "jsx": "react",                    // Enable JSX syntax support for React
+    "strict": true,                    // Optional: Enables strict type-checking
+    "esModuleInterop": true,           // For smooth module imports (like importing CommonJS modules)
+    "skipLibCheck": true,              // Skip library checking for faster compilation
+    "forceConsistentCasingInFileNames": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

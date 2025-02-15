@@ -1,17 +1,13 @@
-/* eslint-disable react-native/no-inline-styles */
+import { AsyncStorage, NavigationPath } from '../../constant/Storage';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Platform,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-/* eslint-disable react-hooks/exhaustive-deps */
-import { AsyncStorage, NavigationPath } from '../../constant/Storage';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GetAsyncData, SetAsyncData } from '../../AsyncStorage/ManipulateStorage';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RootState, useAppDispatch, useAppSelector } from '../../Redux/Store';
@@ -20,6 +16,7 @@ import CustomActivityIndicator from '../../component/CustomActivityIndicator';
 import CustomButton from '../../component/CustomButton';
 import CustomHeader from '../../component/Header';
 import { DashboardNavigationProp } from '../../types/NavigationTypes';
+import { DashboardStyles } from './DashboardStyles';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import FormInput from '../../component/FormInput';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -43,6 +40,7 @@ interface FormData {
 interface Props{
   navigation: DashboardNavigationProp;
 }
+const snapPoints = ['60%'];
 const DashboardScreen = ({ navigation }: Props) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -50,13 +48,12 @@ const DashboardScreen = ({ navigation }: Props) => {
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(false);
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
 
   const loggedInUser = useAppSelector((store: RootState) => store.userInfo.currentUser);
   const dispatch = useAppDispatch();
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = ['60%'];
-
+const styles = DashboardStyles();
   const { control, handleSubmit, reset, setValue, watch } = useForm<FormData>({
     defaultValues: {
       taskName: '',
@@ -105,7 +102,6 @@ const DashboardScreen = ({ navigation }: Props) => {
 
   const filteredTasks = () => {
     const now = new Date();
-    // Map tasks and ensure dueTime is a Date object
     const updatedTasks = tasks.map(task => {
       const dueTime = task.dueTime ? new Date(task.dueTime) : null;
       return {
@@ -126,7 +122,6 @@ const DashboardScreen = ({ navigation }: Props) => {
   const handleSaveTask = async (data: FormData) => {
     console.log(data);
     if (isEditing && editingTaskId) {
-      // Update existing task
       const updatedTasks = tasks.map(task =>
         task.id === editingTaskId
           ? {
@@ -160,9 +155,8 @@ const DashboardScreen = ({ navigation }: Props) => {
     await updateUserTasksInStorage(loggedInUser.id, updatedTasks);
   };
 
-  // Date picker handlers
-  const showDatePicker = useCallback(() => setIsDatePickerVisible(true),[isDatePickerVisible]);
-  const hideDatePicker = useCallback(() => setIsDatePickerVisible(false),[isDatePickerVisible]);
+  const showDatePicker = useCallback(() => setIsDatePickerVisible(true),[]);
+  const hideDatePicker = useCallback(() => setIsDatePickerVisible(false),[]);
   const handleConfirmDate = (date: Date) => {
     console.log(new Date(date));
     setValue('dueTime', new Date(date));
@@ -202,25 +196,19 @@ const DashboardScreen = ({ navigation }: Props) => {
       if (result) {
         const userTask = result[loggedInUser.id];
         if (userTask && userTask.length > 0) {
-          // Parse tasks and convert dueTime to Date objects
           const parsedTasks = userTask.map((task: Task) => ({
             ...task,
             dueTime: task.dueTime ? new Date(task.dueTime) : null,
           }));
-
-          // Check the dueTime of the first task
           const today = new Date();
           const firstTask = parsedTasks[0];
           if (firstTask) {
             const taskDueDate = new Date(firstTask.dueTime || 0);
-
-            // Check if the first task's dueDate is not today's date
             if (
               taskDueDate.getDate() !== today.getDate() ||
               taskDueDate.getMonth() !== today.getMonth() ||
               taskDueDate.getFullYear() !== today.getFullYear()
             ) {
-              // Reset tasks if the date doesn't match
               setTasks([]);
               console.log('Tasks have been reset because the date has changed');
             } else {
@@ -338,95 +326,3 @@ const DashboardScreen = ({ navigation }: Props) => {
 
 export default DashboardScreen;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-  },
-  header: {
-    // paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  greeting: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginVertical: 10,
-  },
-  addButton: {
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
-    alignSelf: 'center',
-    marginVertical: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  taskList: {
-    paddingBottom: 100,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  notFoundContainer: {
-    flex: 1,
-    height: '100%',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    justifyContent:'center',
-    alignItems:'center',
-  },
-  notFoundText: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  bottomSheetContent: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#eee',
-  },
-  bottomSheetHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  bottomSheetTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign:'center',
-    paddingBottom:10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-  },
-  datePickerButton: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  datePickerText: {
-    fontSize: 16,
-    color: '#333',
-  },
-});

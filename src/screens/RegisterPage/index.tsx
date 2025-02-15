@@ -13,14 +13,21 @@ import { addRegisterUser } from '../../Redux/Features/usersSlice';
 import { useForm } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 
-interface Props{
+interface RegisterForm {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+interface Props {
   navigation: RegisterNavigationProp;
 }
-const RegisterScreen = ({navigation}:Props) => {
-  const allUserList = useAppSelector((store:RootState) => store.userInfo.userList);
+
+const RegisterScreen = ({ navigation }: Props) => {
+  const allUserList = useAppSelector((store: RootState) => store.userInfo.userList);
   const dispatch = useAppDispatch();
   const uniqueId = uuidv4();
-  const { control, handleSubmit ,getValues} = useForm({
+  const { control, handleSubmit, getValues } = useForm<RegisterForm>({
     defaultValues: {
       name: '',
       email: '',
@@ -29,102 +36,99 @@ const RegisterScreen = ({navigation}:Props) => {
     },
   });
 
-  const onSubmit = async(data: any) => {
-    const isExistUser = allUserList.find(user => user.email === data.email);
+  const onSubmit = async (data: RegisterForm) => {
+    const isExistUser = allUserList.find(user => user.email === data.email.toLowerCase());
     console.log(isExistUser);
-    if(isExistUser){
+    if (isExistUser) {
       Alert.alert('Email already exists');
       return;
-    }else{
+    } else {
       const updatedDetails = {
         id: uniqueId,
         name: data.name,
-        email: data.email,
+        email: data.email.toLowerCase(),
         password: data.password,
       };
       console.log(updatedDetails);
-      const updatedUser = [...allUserList, updatedDetails ];
+      const updatedUser = [...allUserList, updatedDetails];
       dispatch(addRegisterUser(updatedDetails));
-      await SetAsyncData(AsyncStorage.USER_INFO,updatedUser);
+      await SetAsyncData(AsyncStorage.USER_INFO, updatedUser);
       navigation.navigate(NavigationPath.Login);
     }
   };
 
   return (
-        <ImageBackground
-        source={require('../../assets/AuthenticationBg.jpg')}
-        alt="Bakckground Image"
-        style={styles.imageContainer}
-        >
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+    <ImageBackground
+      source={require('../../assets/AuthenticationBg.jpg')}
+      alt="Bakckground Image"
+      style={styles.imageContainer}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
       >
-        <View style={styles.formWrapper}>
-          <Image
-            source={require('../../assets/Authentication.jpg')}
-            style={styles.image}
-          />
-
-          {/* <Text style={styles.title}>Register</Text> */}
-
-          <View style={styles.inputContainer}>
-            <FormInput
-              control={control}
-              name="name"
-              label="Name"
-              icon="person"
-              rules={{ required: 'Name is required' }}
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.formWrapper}>
+            <Image
+              source={require('../../assets/Authentication.jpg')}
+              style={styles.image}
             />
-            <FormInput
-              control={control}
-              name="email"
-              label="Email"
-              icon="mail"
-              keyboardType="email-address"
-              rules={{
-                required: 'Email is required',
-                pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' },
-            }}
-            />
-            <FormInput
-              control={control}
-              name="password"
-              label="Password"
-              icon="lock-closed-outline"
-              secureTextEntry
-              rules={{
-                required: 'Password is required',
-                minLength: { value: 6, message: 'Min length is 6' },
-            }}
-            />
-            <FormInput
-              control={control}
-              name="confirmPassword"
-              label="Confirm Password"
-              icon="lock-closed-outline"
-              secureTextEntry
-              rules={{
-                required: 'Confirm Password is required',
-                validate: (value:any) => value === getValues('password') || 'Passwords do not match',
+            <View style={styles.inputContainer}>
+              <FormInput
+                control={control}
+                name="name"
+                label="Name"
+                icon="person"
+                rules={{ required: 'Name is required' }}
+              />
+              <FormInput
+                control={control}
+                name="email"
+                label="Email"
+                icon="mail"
+                keyboardType="email-address"
+                rules={{
+                  required: 'Email is required',
+                  pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' },
                 }}
-            />
+              />
+              <FormInput
+                control={control}
+                name="password"
+                label="Password"
+                icon="lock-closed-outline"
+                secureTextEntry
+                rules={{
+                  required: 'Password is required',
+                  minLength: { value: 6, message: 'Min length is 6' },
+                }}
+              />
+              <FormInput
+                control={control}
+                name="confirmPassword"
+                label="Confirm Password"
+                icon="lock-closed-outline"
+                secureTextEntry
+                rules={{
+                  required: 'Confirm Password is required',
+                  validate: (value: any) => value === getValues('password') || 'Passwords do not match',
+                }}
+              />
 
-            <CustomButton title="Register" onPress={handleSubmit(onSubmit)} />
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account?</Text>
-              <TouchableOpacity onPress={() => navigation.replace('Login')}>
-                <Text style={styles.footerLink}> Login</Text>
-              </TouchableOpacity>
+              <CustomButton title="Register" onPress={handleSubmit(onSubmit)} />
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>Already have an account?</Text>
+                <TouchableOpacity onPress={() => navigation.replace('Login')}>
+                  <Text style={styles.footerLink}> Login</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
@@ -132,24 +136,24 @@ const RegisterScreen = ({navigation}:Props) => {
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  imageContainer:{
+  imageContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   container: {
     flex: 1,
-    width:'100%',
+    width: '100%',
     backgroundColor: 'rgba(255, 255, 255,0.5)',
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     width: '100%',
-},
-formWrapper: {
+  },
+  formWrapper: {
     minHeight: '100%',
-    marginHorizontal:20,
+    marginHorizontal: 20,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -177,7 +181,7 @@ formWrapper: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 15,
-    gap:2,
+    gap: 2,
   },
   footerText: {
     fontSize: 15,
